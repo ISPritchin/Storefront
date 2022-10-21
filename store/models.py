@@ -44,7 +44,8 @@ class Product(models.Model):
     inventory = models.IntegerField()
     last_update = models.DateTimeField(auto_now=True)
     collection = models.ForeignKey(Collection,
-                                   on_delete=models.PROTECT)  # если коллекция будет удалена, информация о продуктах будет сохранена
+                                   on_delete=models.PROTECT)  # потребуется удалить все продукты, лежащие в коллекции
+                                                              # чтобы удалить коллекцию
     promotions = models.ManyToManyField(Promotion)
 
 
@@ -120,6 +121,16 @@ class Address(models.Model):
     street - улица
     city - город
     zip - почтовый индекс
+
+    Каждый покупатель в системе характеризуется адресом (и он единственен).
+    В силу того, что в отношении Покупатель - Адрес родителем является покупатель
+    (он должен быть создан раньше адреса), то ForeignKey заводится в модели Адрес
+
+    on_delete определяет, как должна вести себя дочерняя модель, если родитель будет удален
+    * models.CASCADE - удалить запись дочерних моделей
+    * models.SET_NULL - выставить значение поля в NULL
+    * models.PROTECT - потребуется удаление всех детей перед удалением родителя
+    * models.SET_DEFAULT - выставить значение по умолчанию
     """
     customer = models.ForeignKey(Customer, on_delete=models.CASCADE)
     street = models.CharField(max_length=255)
