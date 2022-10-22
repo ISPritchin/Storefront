@@ -38,7 +38,7 @@ class Product(models.Model):
     slug
     description - описание продукта
     unit_price - стоимость за единицу товара
-    inventory - инвентарный номер
+    inventory - количество единиц на складе
     last_update - последнее обновление записи
     collection - id коллекции, к которой относится товар
     promotions - id акции, к которой относится товар
@@ -51,7 +51,7 @@ class Product(models.Model):
     last_update = models.DateTimeField(auto_now=True)
     collection = models.ForeignKey(Collection,
                                    on_delete=models.PROTECT)  # потребуется удалить все продукты, лежащие в коллекции
-                                                              # чтобы удалить коллекцию
+    # чтобы удалить коллекцию
     promotions = models.ManyToManyField(Promotion)
 
 
