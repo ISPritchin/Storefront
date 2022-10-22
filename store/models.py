@@ -54,6 +54,9 @@ class Product(models.Model):
     # чтобы удалить коллекцию
     promotions = models.ManyToManyField(Promotion)
 
+    def __str__(self) -> str:
+        return self.title
+
 
 class Customer(models.Model):
     """
@@ -82,6 +85,11 @@ class Customer(models.Model):
     birth_date = models.DateField(null=True)
     membership = models.CharField(max_length=1, choices=MEMBERSHIP_CHOICES, default=MEMBERSHIP_BRONZE)
 
+    def __str__(self):
+        return self.first_name + ' ' + self.last_name
+
+    class Meta:
+        ordering = ['first_name', 'last_name']
 
 class Order(models.Model):
     """
