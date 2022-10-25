@@ -2,41 +2,30 @@ from django.db.models import Count
 from django.shortcuts import get_object_or_404
 from django.http import HttpRequest
 from rest_framework import status
-from rest_framework.generics import ListCreateAPIView, RetrieveUpdateDestroyAPIView
 from rest_framework.response import Response
-from .models import Product, Collection
+from rest_framework.viewsets import ModelViewSet
+
+from .models import Product, Collection, OrderItem
 from .serializers import ProductSerializer, CollectionSerializer
 
 
-class ProductList(ListCreateAPIView):
+class ProductViewSet(ModelViewSet):
     queryset = Product.objects.select_related('collection').all()
     serializer_class = ProductSerializer
 
     def get_serializer_context(self):
         return {'request': self.request}
 
+    def destroy(self, request: HttpRequest, *args, **kwargs):
+        if OrderItem.objects.filter(product_id=kwargs['pk']).count() > 0:
+            error_message = 'product cannot be deleted because it is associated with an order item'
+            return Response({'error': error_message})
 
-class ProductDetail(RetrieveUpdateDestroyAPIView):
-    queryset = Product.objects.all()
-    serializer_class = ProductSerializer
-
-    def delete(self, request: HttpRequest, pk: int) -> Response:
-        product = get_object_or_404(Product, pk=pk)
-        if product.orderitem_set.count() > 0:
-            error_message = 'product cannot be deleted because it is assosiated with an order item'
-            return Response({'error': error_message}, status=status.HTTP_405_METHOD_NOT_ALLOWED)
-        product.delete()
-        return Response(status=status.HTTP_204_NO_CONTENT)
+        return super().destroy(request, *args, **kwargs)
 
 
-class CollectionList(ListCreateAPIView):
+class CollectionViewSet(ModelViewSet):
     queryset = Collection.objects.annotate(products_count=Count('products')).all()
-
-    serializer_class = CollectionSerializer
-
-
-class CollectionDetail(RetrieveUpdateDestroyAPIView):
-    queryset = Collection.objects.all()
     serializer_class = CollectionSerializer
 
     def delete(self, request: HttpRequest, pk: int) -> Response:
