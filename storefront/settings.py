@@ -39,6 +39,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'django_extensions',
     'debug_toolbar',
+    'rest_framework',
     'playground',
     'store',
     'tags',
@@ -136,6 +137,14 @@ STATIC_URL = 'static/'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
+REST_FRAMEWORK = {
+    'COERCE_DECIMAL_TO_STRING':  False
+}
+
+# Settings for getting a graphical representation of the database.
+# Use the commands:
+# 1. python manage.py graph_models  -a > erd.dot
+# 2. python manage.py graph_models  -a > erd.dot
 os.environ["PATH"] = ''
 os.environ["PATH"] += os.pathsep + r'C:\Program Files\Graphviz\bin'
 
