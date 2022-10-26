@@ -139,7 +139,8 @@ STATIC_URL = 'static/'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 REST_FRAMEWORK = {
-    'COERCE_DECIMAL_TO_STRING':  False
+    'COERCE_DECIMAL_TO_STRING':  False,
+    'PAGE_SIZE': 10
 }
 
 # Settings for getting a graphical representation of the database.
