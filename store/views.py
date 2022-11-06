@@ -11,30 +11,31 @@ from rest_framework.viewsets import ModelViewSet, GenericViewSet
 from rest_framework.filters import SearchFilter, OrderingFilter
 
 from .filters import ProductFilter
-from .models import Product, Collection, OrderItem, Review, Cart, CartItem, Customer, Order
+from .models import Product, Collection, OrderItem, Review, Cart, CartItem, Customer, Order, ProductImage
 from .pagination import DefaultPagination
 from .permissions import IsAdminOrReadOnly, ViewCustomerHistoryPermission
 from .serializers import ProductSerializer, CollectionSerializer, ReviewSerializer, CartSerializer, CartItemSerializer, \
-    AddCartItemSerializer, UpdateCartItemSerializer, CustomerSerializer, OrderSerializer, CreateOrderSerializer
+    AddCartItemSerializer, UpdateCartItemSerializer, CustomerSerializer, OrderSerializer, CreateOrderSerializer, \
+    ProductImageSerializer
 
 
 class ProductViewSet(ModelViewSet):
-    queryset = Product.objects.all()
+    queryset = Product.objects.prefetch_related('images').all()
     serializer_class = ProductSerializer
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
     filterset_class = ProductFilter
     pagination_class = DefaultPagination
     permission_classes = [IsAdminOrReadOnly]
     search_fields = ['title', 'description']
-    ordering_fields = ['last_update', 'unit_price']
+    ordering_fields = ['unit_price', 'last_update']
 
     def get_serializer_context(self):
         return {'request': self.request}
 
-    def destroy(self, request: HttpRequest, *args, **kwargs):
+    def destroy(self, request, *args, **kwargs):
         if OrderItem.objects.filter(product_id=kwargs['pk']).count() > 0:
-            error_message = 'product cannot be deleted because it is associated with an order item'
-            return Response({'error': error_message})
+            return Response({'error': 'Product cannot be deleted because it is associated with an order item.'},
+                            status=status.HTTP_405_METHOD_NOT_ALLOWED)
 
         return super().destroy(request, *args, **kwargs)
 
@@ -54,7 +55,6 @@ class CollectionViewSet(ModelViewSet):
 
 
 class ReviewViewSet(ModelViewSet):
-    queryset = Review.objects.all()
     serializer_class = ReviewSerializer
 
     def get_queryset(self):
@@ -128,7 +128,6 @@ class OrderViewSet(ModelViewSet):
             return [IsAdminUser()]
         return [IsAuthenticated()]
 
-
     def create(self, request, *args, **kwargs):
         serializer = CreateOrderSerializer(
             data=request.data,
@@ -152,3 +151,13 @@ class OrderViewSet(ModelViewSet):
 
         customer_id = Customer.objects.only('id').get(user_id=user.id)
         return Order.objects.filter(customer_id=customer_id)
+
+
+class ProductImageViewSet(ModelViewSet):
+    serializer_class = ProductImageSerializer
+
+    def get_serializer_context(self):
+        return {'product_id': self.kwargs['product_pk']}
+
+    def get_queryset(self):
+        return ProductImage.objects.filter(product_id=self.kwargs['product_pk'])

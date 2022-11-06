@@ -1,7 +1,7 @@
 from decimal import Decimal
 from django.db import transaction
 from rest_framework import serializers
-from .models import Product, Collection, Review, Cart, CartItem, Customer, Order, OrderItem
+from .models import Product, Collection, Review, Cart, CartItem, Customer, Order, OrderItem, ProductImage
 from .signals import order_created
 
 
@@ -13,22 +13,29 @@ class CollectionSerializer(serializers.ModelSerializer):
     products_count = serializers.IntegerField(read_only=True)
 
 
+class ProductImageSerializer(serializers.ModelSerializer):
+    def create(self, validated_data):
+        product_id = self.context['product_id']
+        return ProductImage.objects.create(product_id=product_id, **validated_data)
+
+    class Meta:
+        model = ProductImage
+        fields = ['product', 'image']
+
+
 class ProductSerializer(serializers.ModelSerializer):
+    images = ProductImageSerializer(many=True, read_only=True)
+
     class Meta:
         model = Product
-        fields = ['id', 'title', 'description', 'slug', 'inventory', 'unit_price', 'collection', 'price_with_tax', ]
+        fields = ['id', 'title', 'description', 'slug', 'inventory',
+                  'unit_price', 'price_with_tax', 'collection', 'images']
 
-    price_with_tax = serializers.SerializerMethodField(method_name='calculate_tax')
-
-    # collection = CollectionSerializer()
-    # collection_link = serializers.HyperlinkedRelatedField(
-    #     queryset=Collection.objects.all(),
-    #     view_name='collection-detail',
-    #     source='collection'
-    # )
+    price_with_tax = serializers.SerializerMethodField(
+        method_name='calculate_tax')
 
     def calculate_tax(self, product: Product):
-        return round(product.unit_price * Decimal(1.1), 2)
+        return product.unit_price * Decimal(1.1)
 
 
 class ReviewSerializer(serializers.ModelSerializer):
@@ -166,6 +173,7 @@ class CreateOrderSerializer(serializers.Serializer):
             order_created.send_robust(self.__class__, order=order)
 
             return order
+
 
 class UpdateOrderSerializer(serializers.ModelSerializer):
     class Meta:

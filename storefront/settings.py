@@ -39,6 +39,7 @@ INSTALLED_APPS = [
     'django_extensions',
     'django_filters',
 
+    "corsheaders",
     'debug_toolbar',
     'rest_framework',
     'djoser',
@@ -52,6 +53,7 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
+    "corsheaders.middleware.CorsMiddleware",
     'debug_toolbar.middleware.DebugToolbarMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -64,6 +66,11 @@ MIDDLEWARE = [
 
 INTERNAL_IPS = [
     '127.0.0.1'
+]
+
+CORS_ALLOWED_ORIGINS = [
+    'http://localhost:8001',
+    'http://127.0.0.1:8001'
 ]
 
 ROOT_URLCONF = 'storefront.urls'
@@ -132,6 +139,9 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/4.1/howto/static-files/
 
 STATIC_URL = 'static/'
+
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.1/ref/settings/#default-auto-field
