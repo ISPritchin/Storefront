@@ -1,4 +1,4 @@
-from store.models import Collection, Product
+from store.models import Collection
 from rest_framework import status
 import pytest
 from model_bakery import baker
